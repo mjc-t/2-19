@@ -1,0 +1,129 @@
+Transparent Bridging
+- Flooding
+- Learning
+- Forwarding
+- Filtering
+- Aging
+
+sh mac address-table
+
+Mac Address Table Aging Time 변경
+SW(config)# mac address-table aging-time 초 vlan X
+
+확인
+SW# show mac address-table aging-time
+
+Router Interface: Mac Address 입력
+int f0/0
+mac-address ...
+=====
+Vlan: IP Subnet이 다르면 Vlan도 달라야 한다.
+Ethernet Switch가 존재하면, IP Routing 전에 L2 길을 열어줘야 한다. (Vlan)
+Vlan 기본: 5개(1, 1002-1005)
+확인: sh vlan brief
+
+Vlan 활용
+1) Vlan 생성
+vlan #
+name 이름
+
+vlan 10
+vlan 20
+2) Vlan 할당
+int ...
+switchport mode access
+switchport access vlan #
+
+int range  - ,  
+
+int ran f0/1 - 2
+sw mo acc
+sw acc vl 10
+int ran f0/3 - 4
+sw mo acc
+sw acc vl 20
+
+확인 명령어
+show vlan brief
+
+[L2 Port]
+1) Access Port: Single Vlan만 통신
+int ...
+switchport mode access
+switchport access vlan #
+
+show vlan brief
+2) Trunk Port:   Multi Vlan 통신
+int range ....
+switchport trunk encapsulation {dot1q | isl}
+switchport mode trunk
+
+show interface trunk
+
+논리적 맵 이용
+- 라우터의 포트를 보면서 스위치를 판단합니다.
+- 라우터 번호를 보면서 스위치 포트 번호를 설정한다.
+- 라우터는 스위치의 Vlan을 모른다.
+
+[다이나밉스에서의 Access Port 확인]
+show vlan-switch brief 
+
+정리
+- 이더넷스위치를 거치는 경우, 무조건 L2길(Vlan)이 있어야 한다.
+- 서브넷이 하나인 경우엔 기본 Vlan인 vlan 1을 이용하므로, 굳이 vlan을 따로 만들지 않는다.
+- 서브넷이 여러 개인 경우엔 vlan을 추가적으로 생성한다.
+
+설정순서
+0) 사용하지 않는 포트 - shutdown(특히 트렁크 포트)
+1) 스위치 - 트렁크 설정 = Trunk Port 설정
+2) vlan 생성
+3) vlan 할당 = Access Port 설정
+4) 라우터 인터페이스 주소 설정
+5) 인접 ping
+6) 라우팅 설정
+7) 라우팅 테이블 확인
+8) 원격 ping
+
+장비 설정시 주의할 점
+- 초기설정을 복사하고 hostname을 넣어줄 것
+- 스위치 초기화시 delete vlan.dat 입력할 것
+- speed 10, duplex auto, no cdp run(다이나밉스 에러 제거) 넣지 말 것
+
+[vlan 생성 방법]
+1) Global Config Mode
+vlan 10
+name Marketing
+vlan 20
+name General
+vlan 30
+name Network
+2) Vlan Database Mode
+vlan database
+vlan 100 name Tech
+vlan 200 name MS
+vlan 300 name Linux
+exit
+=====
+[DTP]
+DD + T = Trunk
+DD + A = Access
+DD + DD = Trunk
+DD + DA = Trunk
+===========
+DA + T = Trunk
+DA + A = Access
+DA + DD = Trunk
+DA + DA = Access
+
+int ...
+switchport mode dynamic {desirable | auto}
+
+확인
+show interface trunk
+show interface status (Full)
+show interface f0/19 switchport
+show run
+
+Native Vlan 설정: 기본값 vlan 1
+int ran f0/23 - 24
+switchport trunk native vlan X
